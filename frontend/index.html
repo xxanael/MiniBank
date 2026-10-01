@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiniBank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============================================================
+       VUE 1 : CONNEXION
+       ============================================================ -->
+  <section id="login-view" class="view active">
+    <div class="auth-shell">
+      <aside class="auth-aside">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-name">MiniBank</span>
+        </div>
+
+        <div class="auth-pitch">
+          <h1>Vos comptes, en ligne et en toute simplicité.</h1>
+          <p>Des comptes personnels et professionnels faciles à ouvrir, gérer et faire fructifier.</p>
+          <dl class="facts">
+            <div><dt>Utilisateurs</dt><dd>+30K</dd></div>
+            <div><dt>Disponibilité</dt><dd>99,9 %</dd></div>
+            <div><dt>Connexion</dt><dd>Sécurisée</dd></div>
+          </dl>
+        </div>
+      </aside>
+
+      <div class="auth-main">
+        <form class="auth-form" onsubmit="event.preventDefault(); login()">
+          <header>
+            <h2>Connexion</h2>
+            <p>Entrez vos identifiants pour accéder à votre espace.</p>
+          </header>
+
+          <div class="field">
+            <label for="login-numero">Numéro de compte</label>
+            <input type="number" id="login-numero" placeholder="Ex : 1000" autocomplete="username">
+          </div>
+
+          <div class="field">
+            <label for="login-pin">Code PIN</label>
+            <input type="password" id="login-pin" maxlength="4" inputmode="numeric" placeholder="••••" autocomplete="current-password">
+          </div>
+
+          <p id="login-error" class="form-msg error" role="alert"></p>
+
+          <button type="submit" class="btn btn-primary block">Se connecter</button>
+
+          <div class="auth-sep"><span>ou</span></div>
+
+          <button type="button" class="btn btn-secondary block" onclick="showView('create-view')">
+            Ouvrir un nouveau compte
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       VUE 2 : CRÉATION DE COMPTE
+       ============================================================ -->
+  <section id="create-view" class="view">
+    <div class="auth-shell">
+      <aside class="auth-aside">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-name">MiniBank</span>
+        </div>
+
+        <div class="auth-pitch">
+          <h1>Ouvrez votre compte en deux minutes.</h1>
+          <p>Aucun frais caché. Aucune paperasse. Juste vous et votre argent.</p>
+          <dl class="facts">
+            <div><dt>Frais d'ouverture</dt><dd>0 €</dd></div>
+            <div><dt>Support</dt><dd>24/7</dd></div>
+          </dl>
+        </div>
+      </aside>
+
+      <div class="auth-main">
+        <form class="auth-form" onsubmit="event.preventDefault(); createAccount()">
+          <header>
+            <h2>Créer un compte</h2>
+            <p>Remplissez les informations ci-dessous.</p>
+          </header>
+
+          <div class="field">
+            <label for="create-titulaire">Nom du titulaire</label>
+            <input type="text" id="create-titulaire" placeholder="Jean Dupont" autocomplete="name">
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="create-pin">Code PIN (4 chiffres)</label>
+              <input type="password" id="create-pin" maxlength="4" inputmode="numeric" placeholder="••••" autocomplete="new-password">
+            </div>
+            <div class="field">
+              <label for="create-type">Type de compte</label>
+              <select id="create-type">
+                <option value="Courant">Courant</option>
+                <option value="Epargne">Épargne</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="create-solde">Solde initial (€)</label>
+            <input type="number" id="create-solde" value="0" min="0" step="0.01">
+          </div>
+
+          <p id="create-msg" class="form-msg error" role="alert"></p>
+
+          <button type="submit" class="btn btn-primary block">Créer mon compte</button>
+          <button type="button" class="btn btn-secondary block" onclick="showView('login-view')">
+            Retour à la connexion
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       VUE 3 : ESPACE CLIENT
+       ============================================================ -->
+  <section id="dashboard-view" class="view">
+    <div class="app-shell">
+
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-name">MiniBank</span>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Navigation principale">
+          <button type="button" class="nav-item active" data-tab="operations">Opérations</button>
+          <button type="button" class="nav-item" data-tab="history">Historique</button>
+          <button type="button" class="nav-item" data-tab="profile">Profil</button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user">
+            <div class="avatar" id="user-avatar">U</div>
+            <div class="user-info">
+              <strong id="user-name">—</strong>
+              <span id="account-num">—</span>
+            </div>
+          </div>
+          <button type="button" class="btn-icon" onclick="logout()" aria-label="Se déconnecter" title="Se déconnecter">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="page-header">
+          <div>
+            <h1 id="welcome-name">Bonjour</h1>
+            <p>Voici l'état de votre compte.</p>
+          </div>
+          <span class="badge badge-neutral" id="account-type-pill">Courant</span>
+        </header>
+
+        <!-- Résumé du compte -->
+        <section class="summary" aria-label="Résumé du compte">
+          <div class="balance">
+            <span class="label">Solde disponible</span>
+            <strong class="balance-amount" id="balance-amount">0,00 €</strong>
+            <span class="balance-meta"><span id="balance-card-num">—</span> · <span id="balance-type">—</span></span>
+          </div>
+          <dl class="details">
+            <div><dt>Compte n°</dt><dd id="account-num-2">—</dd></div>
+            <div><dt>Type</dt><dd id="account-type-2">—</dd></div>
+            <div><dt>Statut</dt><dd class="status-ok">Actif</dd></div>
+          </dl>
+        </section>
+
+        <!-- Onglet : Opérations -->
+        <div class="tab-content active" id="tab-operations">
+          <h2 class="section-title">Opérations</h2>
+          <div class="op-grid">
+            <form class="panel" onsubmit="event.preventDefault(); doDepot()">
+              <h3>Dépôt</h3>
+              <p class="hint">Ajouter de l'argent sur votre compte.</p>
+              <div class="field">
+                <label for="depot-montant">Montant (€)</label>
+                <input type="number" id="depot-montant" min="0.01" step="0.01" placeholder="0,00">
+              </div>
+              <button type="submit" class="btn btn-primary block">Déposer</button>
+            </form>
+
+            <form class="panel" onsubmit="event.preventDefault(); doRetrait()">
+              <h3>Retrait</h3>
+              <p class="hint">Retirer de l'argent de votre compte.</p>
+              <div class="field">
+                <label for="retrait-montant">Montant (€)</label>
+                <input type="number" id="retrait-montant" min="0.01" step="0.01" placeholder="0,00">
+              </div>
+              <button type="submit" class="btn btn-primary block">Retirer</button>
+            </form>
+
+            <form class="panel" onsubmit="event.preventDefault(); doVirement()">
+              <h3>Virement</h3>
+              <p class="hint">Envoyer de l'argent vers un autre compte.</p>
+              <div class="field">
+                <label for="virement-dest">N° du destinataire</label>
+                <input type="number" id="virement-dest" placeholder="Ex : 1001">
+              </div>
+              <div class="field">
+                <label for="virement-montant">Montant (€)</label>
+                <input type="number" id="virement-montant" min="0.01" step="0.01" placeholder="0,00">
+              </div>
+              <button type="submit" class="btn btn-primary block">Virer</button>
+            </form>
+          </div>
+          <div id="op-msg" class="notification" role="status"></div>
+        </div>
+
+        <!-- Onglet : Historique -->
+        <div class="tab-content" id="tab-history">
+          <div class="section-head">
+            <h2 class="section-title">Historique des transactions</h2>
+            <button type="button" class="btn btn-secondary btn-small" onclick="loadHistorique()">Actualiser</button>
+          </div>
+          <div class="table-wrapper" id="history-wrapper">
+            <table id="history-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Détails</th>
+                  <th class="num">Montant</th>
+                  <th class="num">Solde</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div id="history-empty" class="empty-state">Aucune transaction pour le moment. Effectuez un dépôt pour commencer.</div>
+        </div>
+
+        <!-- Onglet : Profil -->
+        <div class="tab-content" id="tab-profile">
+          <h2 class="section-title">Profil</h2>
+
+          <form class="panel narrow" onsubmit="event.preventDefault(); updateProfile()">
+            <div class="field">
+              <label for="profile-titulaire">Nom du titulaire</label>
+              <input type="text" id="profile-titulaire">
+            </div>
+            <div class="field">
+              <label for="profile-type">Type de compte</label>
+              <select id="profile-type">
+                <option value="Courant">Courant</option>
+                <option value="Epargne">Épargne</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+            <div id="profile-msg" class="notification" role="status"></div>
+          </form>
+
+          <div class="panel narrow danger-zone">
+            <div>
+              <h3>Fermer mon compte</h3>
+              <p class="hint">Cette action est définitive. Le solde doit être à 0 €.</p>
+            </div>
+            <button type="button" class="btn btn-danger" onclick="closeAccount()">Fermer le compte</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       VUE 4 : ADMINISTRATION
+       ============================================================ -->
+  <section id="admin-view" class="view">
+    <div class="app-shell">
+
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-name">MiniBank <span class="brand-tag">Admin</span></span>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Navigation administrateur">
+          <button type="button" class="nav-item active" data-atab="comptes">Comptes</button>
+          <button type="button" class="nav-item" data-atab="transactions">Transactions</button>
+          <button type="button" class="nav-item" data-atab="creation">Créer un compte</button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user">
+            <div class="avatar">A</div>
+            <div class="user-info">
+              <strong id="admin-name">Admin</strong>
+              <span>Administrateur</span>
+            </div>
+          </div>
+          <button type="button" class="btn-icon" onclick="logout()" aria-label="Se déconnecter" title="Se déconnecter">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="page-header">
+          <div>
+            <h1>Vue globale</h1>
+            <p>Suivi des comptes et des transactions.</p>
+          </div>
+        </header>
+
+        <section class="stats-grid" aria-label="Statistiques">
+          <div class="stat">
+            <span class="label">Comptes totaux</span>
+            <strong id="stat-total">—</strong>
+          </div>
+          <div class="stat">
+            <span class="label">Comptes actifs</span>
+            <strong id="stat-actifs">—</strong>
+          </div>
+          <div class="stat">
+            <span class="label">Masse monétaire</span>
+            <strong id="stat-masse">—</strong>
+          </div>
+          <div class="stat">
+            <span class="label">Transactions</span>
+            <strong id="stat-transactions">—</strong>
+          </div>
+        </section>
+
+        <!-- Onglet : Comptes -->
+        <div class="tab-content active" id="atab-comptes">
+          <div class="section-head">
+            <h2 class="section-title">Tous les comptes</h2>
+            <button type="button" class="btn btn-secondary btn-small" onclick="loadAdminComptes()">Actualiser</button>
+          </div>
+          <div class="table-wrapper">
+            <table id="admin-comptes-table">
+              <thead>
+                <tr>
+                  <th>N°</th>
+                  <th>Titulaire</th>
+                  <th>Type</th>
+                  <th class="num">Solde</th>
+                  <th>Statut</th>
+                  <th>Rôle</th>
+                  <th class="actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div id="admin-comptes-msg" class="notification" role="status"></div>
+        </div>
+
+        <!-- Onglet : Transactions -->
+        <div class="tab-content" id="atab-transactions">
+          <div class="section-head">
+            <h2 class="section-title">Toutes les transactions</h2>
+            <button type="button" class="btn btn-secondary btn-small" onclick="loadAdminTransactions()">Actualiser</button>
+          </div>
+          <div class="table-wrapper">
+            <table id="admin-transactions-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Date</th>
+                  <th>Source</th>
+                  <th>Destinataire</th>
+                  <th>Type</th>
+                  <th class="num">Montant</th>
+                  <th class="num">Solde</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Onglet : Création -->
+        <div class="tab-content" id="atab-creation">
+          <h2 class="section-title">Créer un compte</h2>
+          <form class="panel narrow" onsubmit="event.preventDefault(); adminCreateCompte()">
+            <div class="field">
+              <label for="admin-new-titulaire">Nom du titulaire</label>
+              <input type="text" id="admin-new-titulaire" placeholder="Marie Martin">
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="admin-new-pin">Code PIN (4 chiffres)</label>
+                <input type="password" id="admin-new-pin" maxlength="4" inputmode="numeric" placeholder="••••" autocomplete="new-password">
+              </div>
+              <div class="field">
+                <label for="admin-new-type">Type de compte</label>
+                <select id="admin-new-type">
+                  <option value="Courant">Courant</option>
+                  <option value="Epargne">Épargne</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="admin-new-solde">Solde initial (€)</label>
+                <input type="number" id="admin-new-solde" value="0" min="0" step="0.01">
+              </div>
+              <div class="field">
+                <label for="admin-new-numero">N° forcé (vide = auto)</label>
+                <input type="number" id="admin-new-numero" placeholder="Ex : 5000">
+              </div>
+            </div>
+            <label class="check-row" for="admin-new-isadmin">
+              <input type="checkbox" id="admin-new-isadmin">
+              <span>Compte administrateur</span>
+            </label>
+            <button type="submit" class="btn btn-primary">Créer le compte</button>
+            <div id="admin-create-msg" class="notification" role="status"></div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </section>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

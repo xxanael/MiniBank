@@ -1,0 +1,5 @@
+9999|ADMIN|0000|0|Admin|1|1
+1000|Augu|1111|1300|Courant|1|0
+1001|Anael|1111|700|Courant|1|0
+10000|Anael|1111|100000|Courant|1|0
+10001|Augu|1111|100000|Courant|1|0
