@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 3.10)
-project(MiniBankServer)
+project(MiniBank)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# On inclut le dossier courant pour trouver httplib.h et json.hpp
-include_directories(.)
+# Inclure le dossier courant pour les headers (httplib.h, json.hpp, Banque.h)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(server main.cpp Banque.cpp) # Ajoute Banque.cpp si tu as un fichier séparé
+# Trouver automatiquement tous les fichiers .cpp du dossier
+file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+
+# Créer l'exécutable avec tous les .cpp trouvés
+add_executable(minibank ${SOURCES})
