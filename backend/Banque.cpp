@@ -33,9 +33,7 @@ Banque::Banque() : nextCompteNumero(1000), nextTransactionId(1) {
 }
 
 Banque::~Banque() {
-    if (conn && conn->is_open()) {
-        conn->close();
-    }
+    
 }
 
 void Banque::initDB() {
