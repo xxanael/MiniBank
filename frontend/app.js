@@ -1,5 +1,5 @@
 // ============================================================
-// MiniBank — Frontend (synchronisé avec index.html)
+// MiniBank — Frontend (synchronisé avec index.html et style.css)
 // ============================================================
 const API = "";
 let currentUser = null;
@@ -40,7 +40,7 @@ function transactionMeta(type) {
     'Virement emis': { label: 'Virement émis', badge: 'badge-out', amount: 'amount-negative', sign: '-' },
     'Virement recu': { label: 'Virement reçu', badge: 'badge-in', amount: 'amount-positive', sign: '+' }
   };
-  return map[type] || { label: type, badge: 'badge-neutral', amount: '', sign: '' };
+  return map[type] || { label: type, badge: 'badge-neutral', amount: 'amount-neutral', sign: '' };
 }
 
 async function apiCall(path, method = "GET", body = null) {
@@ -55,13 +55,37 @@ async function apiCall(path, method = "GET", body = null) {
   }
 }
 
+function showNotification(id, message, type = "success") {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = message;
+  el.className = "notification show " + type;
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => {
+    el.className = "notification";
+  }, 4000);
+}
+
 // ------------------------------------------------------------
 // NAVIGATION
 // ------------------------------------------------------------
 function showView(id) {
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-  $(id).classList.add("active");
+  const el = $(id);
+  if (el) el.classList.add("active");
   window.scrollTo({ top: 0 });
+}
+
+function setTab(prefix, target) {
+  document.querySelectorAll(`.nav-item[data-${prefix}]`).forEach(item => {
+    const active = item.dataset[prefix] === target;
+    item.classList.toggle("active", active);
+    if (active) item.setAttribute("aria-current", "page");
+    else item.removeAttribute("aria-current");
+  });
+  document.querySelectorAll(`.tab-content[id^="${prefix}-"]`).forEach(c => {
+    c.classList.toggle("active", c.id === `${prefix}-${target}`);
+  });
 }
 
 // ------------------------------------------------------------
@@ -123,8 +147,8 @@ async function createAccount() {
   });
 
   if (data.success) {
-    msgEl.textContent = `Compte créé. Votre numéro : ${data.numero}`;
     msgEl.className = "form-msg success";
+    msgEl.textContent = `Compte créé. Votre numéro : ${data.numero}`;
     setTimeout(() => {
       $("login-numero").value = data.numero;
       $("login-pin").value = "";
@@ -171,14 +195,6 @@ function refreshUserInfo() {
 
   // Résumé
   $("balance-amount").textContent = formatEuro(currentUser.solde);
-  $("balance-card-num").textContent = "Compte n° " + currentUser.numero;
-  $("balance-type").textContent = currentUser.typeCompte === "Épargne" ? "Compte épargne" : "Compte courant";
-  $("account-num-2").textContent = currentUser.numero;
-  $("account-type-2").textContent = typeLabel;
-
-  // Profil
-  $("profile-titulaire").value = currentUser.titulaire;
-  $("profile-type").value = currentUser.typeCompte;
 }
 
 async function refreshAccount() {
@@ -196,7 +212,7 @@ async function refreshAccount() {
 async function doDepot() {
   const montant = parseFloat($("depot-montant").value);
   if (!montant || montant <= 0) {
-    showOpMsg("Montant invalide.", "error");
+    showNotification("op-msg", "Montant invalide.", "error");
     return;
   }
 
@@ -209,17 +225,17 @@ async function doDepot() {
     currentUser.solde = data.solde;
     refreshUserInfo();
     $("depot-montant").value = "";
-    showOpMsg(data.message, "success");
+    showNotification("op-msg", data.message, "success");
     loadHistorique();
   } else {
-    showOpMsg(data.message, "error");
+    showNotification("op-msg", data.message, "error");
   }
 }
 
 async function doRetrait() {
   const montant = parseFloat($("retrait-montant").value);
   if (!montant || montant <= 0) {
-    showOpMsg("Montant invalide.", "error");
+    showNotification("op-msg", "Montant invalide.", "error");
     return;
   }
 
@@ -232,10 +248,10 @@ async function doRetrait() {
     currentUser.solde = data.solde;
     refreshUserInfo();
     $("retrait-montant").value = "";
-    showOpMsg(data.message, "success");
+    showNotification("op-msg", data.message, "success");
     loadHistorique();
   } else {
-    showOpMsg(data.message, "error");
+    showNotification("op-msg", data.message, "error");
   }
 }
 
@@ -244,15 +260,15 @@ async function doVirement() {
   const montant = parseFloat($("virement-montant").value);
 
   if (!dest || dest <= 0) {
-    showOpMsg("Compte destinataire invalide.", "error");
+    showNotification("op-msg", "Compte destinataire invalide.", "error");
     return;
   }
   if (!montant || montant <= 0) {
-    showOpMsg("Montant invalide.", "error");
+    showNotification("op-msg", "Montant invalide.", "error");
     return;
   }
   if (dest === currentUser.numero) {
-    showOpMsg("Impossible de virer vers le même compte.", "error");
+    showNotification("op-msg", "Impossible de virer vers le même compte.", "error");
     return;
   }
 
@@ -267,22 +283,11 @@ async function doVirement() {
     refreshUserInfo();
     $("virement-dest").value = "";
     $("virement-montant").value = "";
-    showOpMsg(data.message, "success");
+    showNotification("op-msg", data.message, "success");
     loadHistorique();
   } else {
-    showOpMsg(data.message, "error");
+    showNotification("op-msg", data.message, "error");
   }
-}
-
-function showOpMsg(msg, type) {
-  const el = $("op-msg");
-  if (!el) return;
-  el.textContent = msg;
-  el.className = "form-msg " + type;
-  setTimeout(() => {
-    el.textContent = "";
-    el.className = "form-msg";
-  }, 4000);
 }
 
 // ------------------------------------------------------------
@@ -333,7 +338,7 @@ async function updateProfile() {
   const typeCompte = $("profile-type").value;
 
   if (!titulaire) {
-    showProfileMsg("Le nom est requis.", "error");
+    showNotification("profile-msg", "Le nom est requis.", "error");
     return;
   }
 
@@ -343,9 +348,9 @@ async function updateProfile() {
 
   if (data.success) {
     await refreshAccount();
-    showProfileMsg("Profil mis à jour.", "success");
+    showNotification("profile-msg", "Profil mis à jour.", "success");
   } else {
-    showProfileMsg(data.message, "error");
+    showNotification("profile-msg", data.message, "error");
   }
 }
 
@@ -353,10 +358,10 @@ async function closeAccount() {
   if (!confirm("Êtes-vous sûr de vouloir fermer définitivement votre compte ?")) return;
 
   if (Math.abs(currentUser.solde) > 0.001) {
-    showProfileMsg(
-      "Le solde doit être à 0 € avant la fermeture. Solde actuel : " + formatEuro(currentUser.solde),
-      "error"
-    );
+    showNotification("profile-msg",
+      "Le solde doit être à 0 € avant la fermeture. Solde actuel : " +
+      formatEuro(currentUser.solde),
+      "error");
     return;
   }
 
@@ -366,19 +371,8 @@ async function closeAccount() {
     alert("Compte fermé avec succès.");
     logout();
   } else {
-    showProfileMsg(data.message, "error");
+    showNotification("profile-msg", data.message, "error");
   }
-}
-
-function showProfileMsg(msg, type) {
-  const el = $("profile-msg");
-  if (!el) return;
-  el.textContent = msg;
-  el.className = "form-msg " + type;
-  setTimeout(() => {
-    el.textContent = "";
-    el.className = "form-msg";
-  }, 4000);
 }
 
 // ------------------------------------------------------------
@@ -463,7 +457,7 @@ async function adminCreateCompte() {
   const isAdmin = $("admin-new-isadmin").checked;
 
   if (!titulaire || !/^\d{4}$/.test(pin)) {
-    showAdminCreateMsg("Le titulaire et un PIN à 4 chiffres sont requis.", "error");
+    showNotification("admin-create-msg", "Le titulaire et un PIN à 4 chiffres sont requis.", "error");
     return;
   }
 
@@ -472,7 +466,7 @@ async function adminCreateCompte() {
   });
 
   if (data.success) {
-    showAdminCreateMsg(`Compte créé, n° ${data.numero}`, "success");
+    showNotification("admin-create-msg", `Compte créé, n° ${data.numero}`, "success");
     $("admin-new-titulaire").value = "";
     $("admin-new-pin").value = "";
     $("admin-new-numero").value = "";
@@ -481,7 +475,7 @@ async function adminCreateCompte() {
     loadAdminStats();
     loadAdminComptes();
   } else {
-    showAdminCreateMsg(data.message, "error");
+    showNotification("admin-create-msg", data.message, "error");
   }
 }
 
@@ -491,7 +485,7 @@ async function adminChangeNumero(ancienNumero) {
 
   const nouveauNumero = parseInt(nouveau);
   if (!nouveauNumero || nouveauNumero <= 0) {
-    showAdminComptesMsg("Numéro invalide.", "error");
+    showNotification("admin-comptes-msg", "Numéro invalide.", "error");
     return;
   }
 
@@ -500,10 +494,10 @@ async function adminChangeNumero(ancienNumero) {
   });
 
   if (data.success) {
-    showAdminComptesMsg("Numéro modifié.", "success");
+    showNotification("admin-comptes-msg", "Numéro modifié.", "success");
     loadAdminComptes();
   } else {
-    showAdminComptesMsg(data.message, "error");
+    showNotification("admin-comptes-msg", data.message, "error");
   }
 }
 
@@ -513,34 +507,12 @@ async function adminDeleteCompte(numero) {
   const data = await apiCall(`/api/admin/comptes/${numero}/supprimer`, "POST");
 
   if (data.success) {
-    showAdminComptesMsg("Compte supprimé.", "success");
+    showNotification("admin-comptes-msg", "Compte supprimé.", "success");
     loadAdminStats();
     loadAdminComptes();
   } else {
-    showAdminComptesMsg(data.message, "error");
+    showNotification("admin-comptes-msg", data.message, "error");
   }
-}
-
-function showAdminCreateMsg(msg, type) {
-  const el = $("admin-create-msg");
-  if (!el) return;
-  el.textContent = msg;
-  el.className = "form-msg " + type;
-  setTimeout(() => {
-    el.textContent = "";
-    el.className = "form-msg";
-  }, 4000);
-}
-
-function showAdminComptesMsg(msg, type) {
-  const el = $("admin-comptes-msg");
-  if (!el) return;
-  el.textContent = msg;
-  el.className = "form-msg " + type;
-  setTimeout(() => {
-    el.textContent = "";
-    el.className = "form-msg";
-  }, 4000);
 }
 
 // ------------------------------------------------------------
@@ -549,4 +521,24 @@ function showAdminComptesMsg(msg, type) {
 document.addEventListener("DOMContentLoaded", () => {
   // Afficher la vue login par défaut
   showView("login-view");
+
+  // Onglets espace client
+  document.querySelectorAll(".nav-item[data-tab]").forEach(item => {
+    item.addEventListener("click", () => {
+      const target = item.dataset.tab;
+      setTab("tab", target);
+      if (target === "history") loadHistorique();
+    });
+  });
+
+  // Onglets administration
+  document.querySelectorAll(".nav-item[data-atab]").forEach(item => {
+    item.addEventListener("click", () => {
+      const target = item.dataset.atab;
+      setTab("atab", target);
+      if (target === "comptes") loadAdminComptes();
+      if (target === "transactions") loadAdminTransactions();
+      if (target === "stats") loadAdminStats();
+    });
+  });
 });
