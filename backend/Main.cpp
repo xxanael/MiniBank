@@ -3,7 +3,7 @@
 #include "Banque.h"
 #include <iostream>
 #include <sstream>
-#include <cstdlib> // AJOUT : Nécessaire pour lire les variables d'environnement (PORT)
+#include <cstdlib>
 
 using json = nlohmann::json;
 using namespace httplib;
@@ -28,10 +28,7 @@ json compteToJson(const Compte& c) {
     j["solde"] = c.solde;
     j["typeCompte"] = c.typeCompte;
     j["actif"] = c.actif;
-    // Note: assure-toi que 'isAdmin' existe dans ta struct Compte, sinon retire cette ligne
-    if (c.isAdmin) { 
-        j["isAdmin"] = c.isAdmin;
-    }
+    j["isAdmin"] = c.isAdmin;
     return j;
 }
 
@@ -55,10 +52,11 @@ int main() {
         res.status = 204;
     });
 
-    // MODIFICATION 1 : Chemin relatif au dossier d'exécution (fonctionne dans Docker)
     svr.set_mount_point("/", "./frontend");
 
-    // ---- LOGIN ----
+    // ============================================================
+    // AUTHENTIFICATION
+    // ============================================================
     svr.Post("/api/login", [](const Request& req, Response& res) {
         setCORS(res);
         auto body = parseBody(req);
@@ -83,7 +81,11 @@ int main() {
         }
     });
 
-    // ---- CREER COMPTE ----
+    // ============================================================
+    // GESTION DES COMPTES (utilisateur + admin)
+    // ============================================================
+
+    // Créer un compte
     svr.Post("/api/comptes", [](const Request& req, Response& res) {
         setCORS(res);
         auto body = parseBody(req);
@@ -91,6 +93,8 @@ int main() {
         std::string pin = body.value("pin", "");
         std::string type = body.value("typeCompte", "Courant");
         double solde = body.value("soldeInitial", 0.0);
+        int numeroForce = body.value("numeroForce", -1);
+        bool isAdmin = body.value("isAdmin", false);
 
         if (titulaire.empty() || pin.length() != 4) {
             res.status = 400;
@@ -99,7 +103,7 @@ int main() {
                 "application/json");
             return;
         }
-        int num = banque.creerCompte(titulaire, pin, type, solde);
+        int num = banque.creerCompte(titulaire, pin, type, solde, numeroForce, isAdmin);
         if (num < 0) {
             res.status = 400;
             res.set_content(json{{"success", false},
@@ -110,7 +114,7 @@ int main() {
             {"message", "Compte cree avec succes"}}.dump(), "application/json");
     });
 
-    // ---- LISTE COMPTES ----
+    // Liste de tous les comptes
     svr.Get("/api/comptes", [](const Request&, Response& res) {
         setCORS(res);
         json arr = json::array();
@@ -119,7 +123,7 @@ int main() {
             "application/json");
     });
 
-    // ---- DETAIL COMPTE ----
+    // Détail d'un compte
     svr.Get(R"(/api/comptes/(\d+))", [](const Request& req, Response& res) {
         setCORS(res);
         int num = std::stoi(req.matches[1]);
@@ -134,7 +138,7 @@ int main() {
             {"compte", compteToJson(*c)}}.dump(), "application/json");
     });
 
-    // ---- MODIFIER COMPTE ----
+    // Modifier un compte (titulaire, type)
     svr.Post(R"(/api/comptes/(\d+)/modifier)", [](const Request& req, Response& res) {
         setCORS(res);
         int num = std::stoi(req.matches[1]);
@@ -147,17 +151,7 @@ int main() {
             "application/json");
     });
 
-        // ---- SUPPRIMER COMPTE (Admin) ----
-    svr.Post(R"(/api/comptes/(\d+)/supprimer)", [](const Request& req, Response& res) {
-        setCORS(res);
-        int num = std::stoi(req.matches[1]);
-        bool ok = banque.supprimerCompte(num);
-        res.set_content(json{{"success", ok},
-            {"message", ok ? "Compte supprime" : "Compte introuvable"}}.dump(),
-            "application/json");
-    });
-
-    // ---- FERMER COMPTE ----
+    // Fermer un compte (utilisateur)
     svr.Post(R"(/api/comptes/(\d+)/fermer)", [](const Request& req, Response& res) {
         setCORS(res);
         int num = std::stoi(req.matches[1]);
@@ -167,7 +161,11 @@ int main() {
             "application/json");
     });
 
-    // ---- DEPOT ----
+    // ============================================================
+    // OPÉRATIONS BANCAIRES
+    // ============================================================
+
+    // Dépôt
     svr.Post("/api/depot", [](const Request& req, Response& res) {
         setCORS(res);
         auto body = parseBody(req);
@@ -180,7 +178,7 @@ int main() {
             {"solde", solde}}.dump(), "application/json");
     });
 
-    // ---- RETRAIT ----
+    // Retrait
     svr.Post("/api/retrait", [](const Request& req, Response& res) {
         setCORS(res);
         auto body = parseBody(req);
@@ -193,7 +191,7 @@ int main() {
             {"solde", solde}}.dump(), "application/json");
     });
 
-    // ---- VIREMENT ----
+    // Virement
     svr.Post("/api/virement", [](const Request& req, Response& res) {
         setCORS(res);
         auto body = parseBody(req);
@@ -207,7 +205,7 @@ int main() {
             {"solde", solde}}.dump(), "application/json");
     });
 
-    // ---- HISTORIQUE ----
+    // Historique d'un compte
     svr.Get(R"(/api/historique/(\d+))", [](const Request& req, Response& res) {
         setCORS(res);
         int num = std::stoi(req.matches[1]);
@@ -217,19 +215,70 @@ int main() {
             "application/json");
     });
 
+    // ============================================================
+    // ROUTES ADMIN (préfixe /api/admin/)
+    // ============================================================
+
+    // Stats globales
+    svr.Get("/api/admin/stats", [](const Request&, Response& res) {
+        setCORS(res);
+        auto stats = banque.getStats();
+        json j;
+        j["nbComptesTotal"] = stats.nbComptesTotal;
+        j["nbComptesActifs"] = stats.nbComptesActifs;
+        j["masseTotale"] = stats.masseTotale;
+        j["nbTransactions"] = stats.nbTransactions;
+        res.set_content(json{{"success", true}, {"stats", j}}.dump(),
+                        "application/json");
+    });
+
+    // Toutes les transactions (admin)
+    svr.Get("/api/admin/transactions", [](const Request&, Response& res) {
+        setCORS(res);
+        json arr = json::array();
+        for (const auto& t : banque.getToutesTransactions()) {
+            arr.push_back(transactionToJson(t));
+        }
+        res.set_content(json{{"success", true}, {"transactions", arr}}.dump(),
+                        "application/json");
+    });
+
+    // Supprimer un compte (admin)
+    svr.Post(R"(/api/admin/comptes/(\d+)/supprimer)", [](const Request& req, Response& res) {
+        setCORS(res);
+        int num = std::stoi(req.matches[1]);
+        bool ok = banque.supprimerCompte(num);
+        res.set_content(json{{"success", ok},
+            {"message", ok ? "Compte supprime" : "Compte introuvable"}}.dump(),
+            "application/json");
+    });
+
+    // Changer le numéro d'un compte (admin)
+    svr.Post(R"(/api/admin/comptes/(\d+)/changer-numero)", [](const Request& req, Response& res) {
+        setCORS(res);
+        int ancienNum = std::stoi(req.matches[1]);
+        auto body = parseBody(req);
+        int nouveauNum = body.value("nouveauNumero", 0);
+        std::string msg;
+        bool ok = banque.changerNumero(ancienNum, nouveauNum, msg);
+        res.set_content(json{{"success", ok}, {"message", msg}}.dump(),
+                        "application/json");
+    });
+
+    // ============================================================
+    // DÉMARRAGE DU SERVEUR
+    // ============================================================
     std::cout << "=== Mini Bank Server ===" << std::endl;
-    
-    // MODIFICATION 2 : Lire le port imposé par l'hébergeur (Render), sinon 8080 en local
+
     const char* port_env = std::getenv("PORT");
     int port = port_env ? std::atoi(port_env) : 8080;
-    
+
     std::cout << "Server listening on http://0.0.0.0:" << port << std::endl;
-    
-    // MODIFICATION 3 : Gestion d'erreur au démarrage du serveur
+
     if (!svr.listen("0.0.0.0", port)) {
         std::cerr << "ERREUR: Impossible de démarrer le serveur sur le port " << port << std::endl;
         return 1;
     }
-    
+
     return 0;
 }
