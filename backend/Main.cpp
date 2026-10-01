@@ -147,6 +147,16 @@ int main() {
             "application/json");
     });
 
+        // ---- SUPPRIMER COMPTE (Admin) ----
+    svr.Post(R"(/api/comptes/(\d+)/supprimer)", [](const Request& req, Response& res) {
+        setCORS(res);
+        int num = std::stoi(req.matches[1]);
+        bool ok = banque.supprimerCompte(num);
+        res.set_content(json{{"success", ok},
+            {"message", ok ? "Compte supprime" : "Compte introuvable"}}.dump(),
+            "application/json");
+    });
+
     // ---- FERMER COMPTE ----
     svr.Post(R"(/api/comptes/(\d+)/fermer)", [](const Request& req, Response& res) {
         setCORS(res);
