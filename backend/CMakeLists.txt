@@ -3,11 +3,15 @@ project(MiniBank)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Inclure le dossier courant pour les headers (httplib.h, json.hpp, Banque.h)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+# Trouver libpqxx et libpq
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PQXX REQUIRED libpqxx)
+pkg_check_modules(PQ REQUIRED libpq)
 
-# Trouver automatiquement tous les fichiers .cpp du dossier
+include_directories(${PQXX_INCLUDE_DIRS} ${PQ_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})
+
 file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
-# Créer l'exécutable avec tous les .cpp trouvés
 add_executable(minibank ${SOURCES})
+
+target_link_libraries(minibank ${PQXX_LIBRARIES} ${PQ_LIBRARIES})
