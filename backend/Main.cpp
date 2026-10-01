@@ -3,6 +3,7 @@
 #include "Banque.h"
 #include <iostream>
 #include <sstream>
+#include <cstdlib> // AJOUT : Nécessaire pour lire les variables d'environnement (PORT)
 
 using json = nlohmann::json;
 using namespace httplib;
@@ -27,6 +28,10 @@ json compteToJson(const Compte& c) {
     j["solde"] = c.solde;
     j["typeCompte"] = c.typeCompte;
     j["actif"] = c.actif;
+    // Note: assure-toi que 'isAdmin' existe dans ta struct Compte, sinon retire cette ligne
+    if (c.isAdmin) { 
+        j["isAdmin"] = c.isAdmin;
+    }
     return j;
 }
 
@@ -50,33 +55,33 @@ int main() {
         res.status = 204;
     });
 
-    // Servir le frontend
-    svr.set_mount_point("/", "../frontend");
+    // MODIFICATION 1 : Chemin relatif au dossier d'exécution (fonctionne dans Docker)
+    svr.set_mount_point("/", "./frontend");
 
     // ---- LOGIN ----
-svr.Post("/api/login", [](const Request& req, Response& res) {
-    setCORS(res);
-    auto body = parseBody(req);
-    int numero = body.value("numero", 0);
-    std::string pin = body.value("pin", "");
+    svr.Post("/api/login", [](const Request& req, Response& res) {
+        setCORS(res);
+        auto body = parseBody(req);
+        int numero = body.value("numero", 0);
+        std::string pin = body.value("pin", "");
 
-    if (banque.authentifier(numero, pin)) {
-        Compte* c = banque.trouverCompte(numero);
-        json j;
-        j["numero"]     = c->numero;
-        j["titulaire"]  = c->titulaire;
-        j["solde"]      = c->solde;
-        j["typeCompte"] = c->typeCompte;
-        j["actif"]      = c->actif;
-        j["isAdmin"]    = c->isAdmin;   // ← LA LIGNE QUI MANQUE
-        res.set_content(json{{"success", true}, {"compte", j}}.dump(),
-                        "application/json");
-    } else {
-        res.status = 401;
-        res.set_content(json{{"success", false},
-            {"message", "Numero ou PIN invalide"}}.dump(), "application/json");
-    }
-});
+        if (banque.authentifier(numero, pin)) {
+            Compte* c = banque.trouverCompte(numero);
+            json j;
+            j["numero"]     = c->numero;
+            j["titulaire"]  = c->titulaire;
+            j["solde"]      = c->solde;
+            j["typeCompte"] = c->typeCompte;
+            j["actif"]      = c->actif;
+            j["isAdmin"]    = c->isAdmin;
+            res.set_content(json{{"success", true}, {"compte", j}}.dump(),
+                            "application/json");
+        } else {
+            res.status = 401;
+            res.set_content(json{{"success", false},
+                {"message", "Numero ou PIN invalide"}}.dump(), "application/json");
+        }
+    });
 
     // ---- CREER COMPTE ----
     svr.Post("/api/comptes", [](const Request& req, Response& res) {
@@ -203,7 +208,18 @@ svr.Post("/api/login", [](const Request& req, Response& res) {
     });
 
     std::cout << "=== Mini Bank Server ===" << std::endl;
-    std::cout << "http://localhost:8080" << std::endl;
-    svr.listen("0.0.0.0", 8080);
+    
+    // MODIFICATION 2 : Lire le port imposé par l'hébergeur (Render), sinon 8080 en local
+    const char* port_env = std::getenv("PORT");
+    int port = port_env ? std::atoi(port_env) : 8080;
+    
+    std::cout << "Server listening on http://0.0.0.0:" << port << std::endl;
+    
+    // MODIFICATION 3 : Gestion d'erreur au démarrage du serveur
+    if (!svr.listen("0.0.0.0", port)) {
+        std::cerr << "ERREUR: Impossible de démarrer le serveur sur le port " << port << std::endl;
+        return 1;
+    }
+    
     return 0;
 }
