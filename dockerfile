@@ -5,7 +5,7 @@ FROM ubuntu:22.04 AS builder
 
 RUN apt-get update && apt-get install -y \
     g++ cmake make pkg-config \
-    libpqxx-dev libpq-dev \
+    libpqxx-dev libpq-dev libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
