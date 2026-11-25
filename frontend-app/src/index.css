@@ -1248,3 +1248,263 @@ button, input, select, textarea {
     min-height: 100vh;
   }
 }
+
+/* ============================================================
+   TICKET DE CAISSE THERMIQUE (ATM / THERMAL RECEIPT SLIP)
+   Inspiré des tickets de caisse réels (Tesco, Nawaz Corp)
+   ============================================================ */
+.thermal-receipt-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 94vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  animation: popUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.thermal-receipt-container::-webkit-scrollbar {
+  display: none;
+}
+
+.thermal-receipt-paper {
+  background: #FCFDFD;
+  color: #111111;
+  width: 100%;
+  max-width: 380px;
+  padding: 28px 22px 32px;
+  font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
+  font-size: 11.5px;
+  line-height: 1.45;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.3);
+  position: relative;
+  border-radius: 2px;
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Bords dentelés / sciés en haut et en bas (effet papier déchiré de rouleau thermique) */
+.thermal-receipt-paper::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(135deg, transparent 3px, #FCFDFD 3px),
+              linear-gradient(-135deg, transparent 3px, #FCFDFD 3px);
+  background-size: 6px 6px;
+  background-repeat: repeat-x;
+}
+
+.thermal-receipt-paper::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(45deg, transparent 3px, #FCFDFD 3px),
+              linear-gradient(-45deg, transparent 3px, #FCFDFD 3px);
+  background-size: 6px 6px;
+  background-repeat: repeat-x;
+}
+
+.thermal-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.thermal-logo {
+  max-height: 42px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 6px;
+  filter: contrast(130%);
+}
+
+.thermal-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin: 0;
+  color: #0A0A0A;
+}
+
+.thermal-sub {
+  font-size: 10px;
+  color: #4B5563;
+  letter-spacing: 0.2px;
+}
+
+.thermal-divider {
+  border-top: 1px dashed #4B5563;
+  margin: 12px 0;
+  width: 100%;
+}
+
+.thermal-divider-dotted {
+  border-top: 1px dotted #9CA3AF;
+  margin: 6px 0;
+  width: 100%;
+}
+
+.thermal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.thermal-center-bold {
+  text-align: center;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+  color: #0A0A0A;
+}
+
+.thermal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.thermal-label {
+  color: #4B5563;
+  font-size: 11px;
+}
+
+.thermal-val {
+  font-weight: 600;
+  text-align: right;
+  word-break: break-word;
+}
+
+.thermal-val-bold {
+  font-weight: 800;
+  color: #0A0A0A;
+  text-align: right;
+}
+
+.thermal-table-header {
+  font-weight: 800;
+  font-size: 11px;
+  color: #374151;
+  letter-spacing: 0.5px;
+}
+
+.thermal-total-row {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0A0A0A;
+  padding: 4px 0;
+}
+
+.thermal-status-success {
+  font-weight: 800;
+  color: #047857;
+  font-size: 11px;
+}
+
+.thermal-barcode-box {
+  text-align: center;
+  padding: 4px 0;
+}
+
+.thermal-barcode-num {
+  font-size: 10.5px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  color: #111111;
+  margin-top: 4px;
+}
+
+.thermal-barcode-ts {
+  font-size: 9.5px;
+  color: #6B7280;
+  margin-top: 2px;
+}
+
+.thermal-footer {
+  text-align: center;
+  font-size: 10px;
+  color: #4B5563;
+  line-height: 1.4;
+}
+
+.thermal-receipt-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 380px;
+}
+
+/* ============================================================
+   IMPRESSION PAPIER THERMIQUE & PDF (@media print)
+   ============================================================ */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  
+  /* Masquer l'ensemble des éléments de l'application */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Afficher strictement le ticket thermique */
+  .thermal-receipt-paper,
+  .thermal-receipt-paper * {
+    visibility: visible;
+  }
+  
+  .receipt-modal-backdrop,
+  .modal-backdrop {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    box-shadow: none !important;
+  }
+  
+  .thermal-receipt-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+  }
+  
+  .thermal-receipt-paper {
+    position: absolute !important;
+    left: 50% !important;
+    top: 0 !important;
+    transform: translateX(-50%) !important;
+    box-shadow: none !important;
+    border: 1px dashed #000000 !important;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 !important;
+    padding: 16px 14px 20px !important;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .thermal-receipt-actions {
+    display: none !important;
+  }
+}

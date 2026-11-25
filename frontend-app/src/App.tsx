@@ -41,6 +41,28 @@ import {
   generateUUID,
 } from "./api";
 
+// Composant Code-Barres thermique (Style Tesco / Caisse Enregistreuse)
+const BarcodeSVG = () => {
+  const bars = [
+    2, 1, 1, 3, 1, 2, 3, 1, 1, 2, 2, 1, 3, 2, 1, 1, 2, 3, 1, 2, 1, 3, 2, 1,
+    1, 4, 1, 2, 2, 1, 3, 1, 2, 2, 1, 1, 3, 2, 1, 3, 1, 2, 1, 1, 3, 2, 1, 2,
+    2, 1, 1, 3, 1, 2, 3, 1, 2, 1, 1, 3, 2, 1, 1, 4, 1, 2, 2, 1, 3, 1, 2, 2
+  ];
+  let curX = 6;
+  return (
+    <svg width="270" height="42" viewBox="0 0 270 42" style={{ display: "block", margin: "6px auto 2px" }}>
+      {bars.map((w, i) => {
+        const x = curX;
+        curX += w + (i % 2 === 0 ? 1.5 : 2);
+        if (i % 2 === 0) {
+          return <rect key={i} x={x} y="0" width={w} height="42" fill="#0A0A0A" />;
+        }
+        return null;
+      })}
+    </svg>
+  );
+};
+
 export default function App() {
   // Session & Utilisateur
   const [user, setUser] = useState<Compte | null>(getSavedUser());
@@ -2270,61 +2292,148 @@ export default function App() {
           MODAL 2 : REÇU BANCAIRE OFFICIEL (IMPRESSION PDF DIRECTE)
           ============================================================ */}
       {receiptTxn && (
-        <div className="modal-backdrop">
-          <div className="modal-sheet" style={{ maxWidth: 580 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "2px solid #0A0A0A", paddingBottom: 16, marginBottom: 24 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <img src="/img/logo.png" alt="MiniBank" style={{ maxHeight: 40, width: "auto", borderRadius: 6 }} />
-                <div>
-                  <h3 style={{ fontSize: 18, fontWeight: 800 }}>MiniBank S.A.</h3>
-                  <span style={{ fontSize: 11, color: "#6E7381", textTransform: "uppercase", letterSpacing: 0.5 }}>Bordereau Officiel de Transaction</span>
+        <div className="modal-backdrop receipt-modal-backdrop">
+          <div className="thermal-receipt-container">
+            {/* TICKET DE CAISSE THERMIQUE (STYLE TESCO / FACTURE MAGASIN) */}
+            <div className="thermal-receipt-paper" id="printable-thermal-receipt">
+              {/* En-tête de caisse */}
+              <div className="thermal-header">
+                <img
+                  src="/img/logo.png"
+                  alt="MiniBank"
+                  className="thermal-logo"
+                />
+                <h2 className="thermal-title">MINIBANK S.A.</h2>
+                <div className="thermal-sub">BANQUE NUMÉRIQUE & FINTECH PRO</div>
+                <div className="thermal-sub">AGENCE DIGITALE CENTRALE • PLATEAU</div>
+                <div className="thermal-sub">TÉL : +225 27 20 00 00 00</div>
+                <div className="thermal-sub">WWW.MINIBANK.FINANCE</div>
+              </div>
+
+              <div className="thermal-divider" />
+
+              {/* Récépissé & Horodatage */}
+              <div className="thermal-section">
+                <div className="thermal-center-bold">REÇU D'OPÉRATION BANCAIRE</div>
+                <div className="thermal-row">
+                  <span>DATE : {receiptTxn.date.split(" ")[0] || receiptTxn.date}</span>
+                  <span>HEURE : {receiptTxn.date.split(" ")[1] || "12:00:00"}</span>
+                </div>
+                <div className="thermal-row">
+                  <span>RÉF : {receiptTxn.reference || `TXN-${receiptTxn.id}`}</span>
+                  <span>TICKET #{receiptTxn.id}</span>
+                </div>
+                <div className="thermal-row">
+                  <span>TERMINAL : MB-ATM-049</span>
+                  <span>AUTH : {String(100000 + (receiptTxn.id * 37) % 900000)}</span>
                 </div>
               </div>
-              <span style={{ border: "1.5px solid #4F46E5", color: "#312E81", padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 800, textTransform: "uppercase" }}>
-                Certifié Conforme
-              </span>
+
+              <div className="thermal-divider" />
+
+              {/* Détails de la Transaction */}
+              <div className="thermal-section">
+                <div className="thermal-row">
+                  <span className="thermal-label">OPÉRATION :</span>
+                  <span className="thermal-val-bold">{receiptTxn.type.toUpperCase()}</span>
+                </div>
+                <div className="thermal-row">
+                  <span className="thermal-label">CANAL :</span>
+                  <span className="thermal-val">{receiptTxn.operateur ? receiptTxn.operateur.toUpperCase() : "BANQUE EN LIGNE"}</span>
+                </div>
+                <div className="thermal-row">
+                  <span className="thermal-label">COMPTE ÉMETTEUR :</span>
+                  <span className="thermal-val">
+                    {receiptTxn.compteSource > 0 ? `************${String(receiptTxn.compteSource).slice(-4)}` : "GUICHET CENTRAL"}
+                  </span>
+                </div>
+                <div className="thermal-row">
+                  <span className="thermal-label">TITULAIRE :</span>
+                  <span className="thermal-val">{receiptTxn.sourceTitulaire || user?.titulaire || "CLIENT MINIBANK"}</span>
+                </div>
+                <div className="thermal-row">
+                  <span className="thermal-label">DESTINATAIRE / CIBLE :</span>
+                  <span className="thermal-val">
+                    {receiptTxn.detailsCible || (receiptTxn.compteDest > 0 ? `Compte n° ${receiptTxn.compteDest}` : "—")}
+                  </span>
+                </div>
+                {receiptTxn.motif && (
+                  <div className="thermal-row">
+                    <span className="thermal-label">MOTIF :</span>
+                    <span className="thermal-val">{receiptTxn.motif}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="thermal-divider" />
+
+              {/* Décompte Financier Style Caisse */}
+              <div className="thermal-section">
+                <div className="thermal-row thermal-table-header">
+                  <span>DÉSIGNATION</span>
+                  <span>MONTANT</span>
+                </div>
+                <div className="thermal-divider-dotted" />
+                <div className="thermal-row">
+                  <span>MONTANT OPÉRATION</span>
+                  <span>{formatFCFA(receiptTxn.montant)}</span>
+                </div>
+                <div className="thermal-row">
+                  <span>FRAIS DE SERVICE (0%)</span>
+                  <span>0 FCFA</span>
+                </div>
+                <div className="thermal-row">
+                  <span>TAXE SUR OPÉRATION (0%)</span>
+                  <span>0 FCFA</span>
+                </div>
+                <div className="thermal-divider-dotted" />
+                <div className="thermal-row thermal-total-row">
+                  <span>TOTAL TRANSACTION</span>
+                  <span>{formatFCFA(receiptTxn.montant)}</span>
+                </div>
+                <div className="thermal-divider-dotted" />
+                {receiptTxn.soldeApres > 0 && (
+                  <div className="thermal-row" style={{ marginTop: 2 }}>
+                    <span>SOLDE COMPTE DISPONIBLE</span>
+                    <span>{formatFCFA(receiptTxn.soldeApres)}</span>
+                  </div>
+                )}
+                <div className="thermal-row" style={{ marginTop: 2 }}>
+                  <span>STATUT D'EXÉCUTION</span>
+                  <span className="thermal-status-success">EXÉCUTÉ (ACID CERTIFIÉ)</span>
+                </div>
+              </div>
+
+              <div className="thermal-divider" />
+
+              {/* Code-barres authentique & vérification (Style Tesco) */}
+              <div className="thermal-barcode-box">
+                <BarcodeSVG />
+                <div className="thermal-barcode-num">
+                  9740 1041 2307 {String(1000 + (receiptTxn.id % 9000))} 0062 {String(1000 + ((receiptTxn.id * 17) % 9000))}
+                </div>
+                <div className="thermal-barcode-ts">
+                  {receiptTxn.date} • ACID PROTOCOL • TRANSACTION CERTIFIÉE
+                </div>
+              </div>
+
+              <div className="thermal-divider" />
+
+              {/* Mentions Légales Pied de Ticket */}
+              <div className="thermal-footer">
+                <div>CONSERVEZ CE TICKET DE CAISSE</div>
+                <div>DOCUMENT BANCAIRE OFFICIEL CERTIFIÉ</div>
+                <div style={{ marginTop: 4, fontWeight: 700 }}>MERCI DE VOTRE CONFIANCE !</div>
+              </div>
             </div>
 
-            <div style={{ background: "var(--bg-surface-subtle)", borderRadius: 16, padding: 20, textAlign: "center", marginBottom: 24 }}>
-              <span style={{ fontSize: 12, color: "#6E7381", textTransform: "uppercase", fontWeight: 700 }}>Montant de l'opération</span>
-              <div style={{ fontSize: 36, fontWeight: 800, color: "#0A0A0A", marginTop: 4 }}>
-                {formatFCFA(receiptTxn.montant)}
-              </div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, fontSize: 14, marginBottom: 24 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #E5E7EB", paddingBottom: 8 }}>
-                <span style={{ color: "#6E7381" }}>Référence Bancaire :</span>
-                <strong style={{ fontFamily: "var(--mono)" }}>{receiptTxn.reference || `TXN-${receiptTxn.id}`}</strong>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #E5E7EB", paddingBottom: 8 }}>
-                <span style={{ color: "#6E7381" }}>Date et Heure :</span>
-                <strong>{receiptTxn.date}</strong>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #E5E7EB", paddingBottom: 8 }}>
-                <span style={{ color: "#6E7381" }}>Type d'Opération :</span>
-                <strong>{receiptTxn.type}</strong>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #E5E7EB", paddingBottom: 8 }}>
-                <span style={{ color: "#6E7381" }}>Compte Émetteur :</span>
-                <strong style={{ fontFamily: "var(--mono)" }}>{receiptTxn.compteSource > 0 ? `N° ${receiptTxn.compteSource}` : "Guichet Central"}</strong>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #E5E7EB", paddingBottom: 8 }}>
-                <span style={{ color: "#6E7381" }}>Bénéficiaire / Cible :</span>
-                <strong>{receiptTxn.detailsCible || (receiptTxn.compteDest > 0 ? `Compte n° ${receiptTxn.compteDest}` : "—")}</strong>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#6E7381" }}>Statut d'Exécution :</span>
-                <span style={{ color: "#4338CA", fontWeight: 800 }}>Exécuté avec succès</span>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: 12 }}>
+            {/* Boutons d'Action (Masqués à l'impression) */}
+            <div className="thermal-receipt-actions">
               <button
                 type="button"
                 onClick={() => window.print()}
                 className="btn-electric-submit"
-                style={{ flex: 1 }}
+                style={{ flex: 1, padding: "12px 18px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
               >
                 <Printer size={16} /> Imprimer / Télécharger en PDF
               </button>
@@ -2332,6 +2441,7 @@ export default function App() {
                 type="button"
                 onClick={() => setReceiptTxn(null)}
                 className="btn-white-pill"
+                style={{ padding: "12px 18px" }}
               >
                 Fermer
               </button>
