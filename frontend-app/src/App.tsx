@@ -350,11 +350,8 @@ export default function App() {
           setSavedUser(res.compte);
           setTokenState(res.token);
           setUser(res.compte);
-          if (res.compte.isAdmin) {
-            setActiveTab("admin");
-          } else {
-            setActiveTab("overview");
-          }
+          setActiveTab("overview");
+          setMobileMenuOpen(false);
         }
       } else {
         setAuthError(res.message || "Identifiants invalides.");
@@ -390,6 +387,7 @@ export default function App() {
         setUser(res.compte);
         setMfaChallenge(null);
         setActiveTab("overview");
+        setMobileMenuOpen(false);
       } else {
         setAuthError(res.message || "Code OTP invalide.");
       }
@@ -439,6 +437,8 @@ export default function App() {
     setTokenState(null);
     setMfaChallenge(null);
     setAuthMode("login");
+    setActiveTab("overview");
+    setMobileMenuOpen(false);
   };
 
   // ------------------------------------------------------------
@@ -1020,20 +1020,25 @@ export default function App() {
   // ============================================================
   return (
     <div className="app-shell">
-      {/* Toast Notification */}
+      {/* Toast Notification Moderne Flottante */}
       {opFeedback && (
-        <div
-          style={{
-            position: "fixed", top: 20, right: 20, zIndex: 9999,
-            background: opFeedback.type === "success" ? "#0F172A" : "#EF4444",
-            color: opFeedback.type === "success" ? "#EEEBDA" : "#FFFFFF",
-            border: opFeedback.type === "success" ? "1px solid #4F46E5" : "none",
-            borderRadius: 16, padding: "14px 22px", fontSize: 14, fontWeight: 700,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.3)", display: "flex", alignItems: "center", gap: 10,
-          }}
-        >
-          {opFeedback.type === "success" ? <CheckCircle2 size={18} color="#EEEBDA" /> : <AlertTriangle size={18} />}
-          {opFeedback.text}
+        <div className={`app-toast-notification toast-${opFeedback.type}`}>
+          <div className="toast-icon-wrap">
+            {opFeedback.type === "success" ? (
+              <CheckCircle2 size={18} color="#EEEBDA" />
+            ) : (
+              <AlertTriangle size={18} color="#FFFFFF" />
+            )}
+          </div>
+          <span className="toast-message-text">{opFeedback.text}</span>
+          <button
+            type="button"
+            className="toast-close-btn"
+            onClick={() => setOpFeedback(null)}
+            title="Fermer"
+          >
+            <X size={15} />
+          </button>
         </div>
       )}
 
@@ -1550,7 +1555,7 @@ export default function App() {
               Mes Comptes & Cartes Virtuelles
             </h2>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+            <div className="responsive-two-columns-grid">
               {/* Carte Virtuelle Platinum Black & Electric Touch */}
               <div
                 style={{
@@ -1626,7 +1631,7 @@ export default function App() {
               Virements Bancaires & Bénéficiaires
             </h2>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 24 }}>
+            <div className="responsive-two-columns-grid transfers-layout-grid">
               {/* Formulaire Virement */}
               <div style={{ background: "#FFFFFF", border: "1px solid var(--border-light)", borderRadius: 24, padding: 32 }}>
                 <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>Émettre un Virement Instantané</h3>
@@ -1768,7 +1773,7 @@ export default function App() {
               Paiements & Recharges Mobile Money
             </h2>
 
-            <div style={{ maxWidth: 680, margin: "0 auto", background: "#FFFFFF", border: "1px solid var(--border-light)", borderRadius: 24, padding: 36 }}>
+            <div className="mobile-money-card-container">
               {/* Toggle Mode : Recharge vs Retrait */}
               <div style={{ display: "flex", background: "#F4F5F7", padding: 6, borderRadius: 9999, marginBottom: 28 }}>
                 <button
@@ -1953,7 +1958,7 @@ export default function App() {
               Sécurité & Paramètres du Compte
             </h2>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+            <div className="responsive-two-columns-grid">
               {/* Changement de code PIN */}
               <div style={{ background: "#FFFFFF", border: "1px solid var(--border-light)", borderRadius: 24, padding: 32 }}>
                 <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>Changer mon Code PIN</h3>
@@ -2121,7 +2126,7 @@ export default function App() {
 
             {/* KPI Globaux */}
             {adminStats && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+              <div className="admin-stats-four-grid">
                 <div style={{ background: "#FFFFFF", border: "1px solid var(--border-light)", borderRadius: 20, padding: 22 }}>
                   <span style={{ fontSize: 12, color: "#8A8F9B", fontWeight: 700 }}>Comptes Enregistrés</span>
                   <div style={{ fontSize: 28, fontWeight: 800, marginTop: 4 }}>{adminStats.nbComptesTotal}</div>
@@ -2279,24 +2284,24 @@ export default function App() {
           <>
             <button
               type="button"
-              className={`mobile-nav-item ${activeTab === "overview" ? "active" : ""}`}
-              onClick={() => setActiveTab("overview")}
+              className={`mobile-nav-item ${activeTab === "overview" && !mobileMenuOpen ? "active" : ""}`}
+              onClick={() => { setActiveTab("overview"); setMobileMenuOpen(false); }}
             >
               <Building size={20} />
               <span>Accueil</span>
             </button>
             <button
               type="button"
-              className={`mobile-nav-item ${activeTab === "admin" ? "active" : ""}`}
-              onClick={() => { setActiveTab("admin"); loadAdminData(); }}
+              className={`mobile-nav-item ${activeTab === "admin" && !mobileMenuOpen ? "active" : ""}`}
+              onClick={() => { setActiveTab("admin"); setMobileMenuOpen(false); loadAdminData(); }}
             >
               <Shield size={20} />
               <span>Supervision</span>
             </button>
             <button
               type="button"
-              className="mobile-nav-item"
-              onClick={() => setMobileMenuOpen(true)}
+              className={`mobile-nav-item ${mobileMenuOpen ? "active" : ""}`}
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
             >
               <Menu size={20} />
               <span>Menu</span>
@@ -2306,40 +2311,40 @@ export default function App() {
           <>
             <button
               type="button"
-              className={`mobile-nav-item ${activeTab === "overview" ? "active" : ""}`}
-              onClick={() => setActiveTab("overview")}
+              className={`mobile-nav-item ${activeTab === "overview" && !mobileMenuOpen ? "active" : ""}`}
+              onClick={() => { setActiveTab("overview"); setMobileMenuOpen(false); }}
             >
               <Building size={20} />
               <span>Accueil</span>
             </button>
             <button
               type="button"
-              className={`mobile-nav-item ${activeTab === "accounts" ? "active" : ""}`}
-              onClick={() => setActiveTab("accounts")}
+              className={`mobile-nav-item ${activeTab === "accounts" && !mobileMenuOpen ? "active" : ""}`}
+              onClick={() => { setActiveTab("accounts"); setMobileMenuOpen(false); }}
             >
               <CreditCard size={20} />
               <span>Comptes</span>
             </button>
             <button
               type="button"
-              className={`mobile-nav-item ${activeTab === "transfers" ? "active" : ""}`}
-              onClick={() => setActiveTab("transfers")}
+              className={`mobile-nav-item ${activeTab === "transfers" && !mobileMenuOpen ? "active" : ""}`}
+              onClick={() => { setActiveTab("transfers"); setMobileMenuOpen(false); }}
             >
               <Send size={20} />
               <span>Virements</span>
             </button>
             <button
               type="button"
-              className={`mobile-nav-item ${activeTab === "mobile_money" ? "active" : ""}`}
-              onClick={() => setActiveTab("mobile_money")}
+              className={`mobile-nav-item ${activeTab === "mobile_money" && !mobileMenuOpen ? "active" : ""}`}
+              onClick={() => { setActiveTab("mobile_money"); setMobileMenuOpen(false); }}
             >
               <Smartphone size={20} />
               <span>Mobile</span>
             </button>
             <button
               type="button"
-              className="mobile-nav-item"
-              onClick={() => setMobileMenuOpen(true)}
+              className={`mobile-nav-item ${mobileMenuOpen ? "active" : ""}`}
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
             >
               <Menu size={20} />
               <span>Plus</span>
