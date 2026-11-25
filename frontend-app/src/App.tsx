@@ -878,7 +878,7 @@ export default function App() {
                       className="field-input"
                       value={loginNumero}
                       onChange={(e) => setLoginNumero(e.target.value)}
-                      placeholder="Ex : 514878950 (ou 9999 pour Admin)"
+                      placeholder="Ex : 514878950"
                       required
                     />
                   </div>
