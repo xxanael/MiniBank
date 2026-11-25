@@ -966,29 +966,72 @@ button, input, select, textarea {
 .operators-selection-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 
 .operator-card {
   border: 2px solid var(--border-light);
-  border-radius: var(--radius-subcard);
-  padding: 16px 8px;
+  border-radius: 18px;
+  padding: 16px 10px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  background: #FFFFFF;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  user-select: none;
 }
 
 .operator-card:hover {
-  border-color: var(--ink-primary);
+  border-color: #CBD5E1;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
 }
 
 .operator-card.selected {
-  border-color: var(--midnight-indigo-electric);
-  background: rgba(79, 70, 229, 0.08);
+  border-color: #185DF1;
+  background: #F3F7FE;
+  box-shadow: 0 4px 16px rgba(24, 93, 241, 0.15);
+}
+
+.operator-icon-wrapper {
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  min-height: 50px;
+  max-width: 50px;
+  max-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.operator-icon-img {
+  width: 50px;
+  height: 50px;
+  max-width: 50px;
+  max-height: 50px;
+  object-fit: contain;
+  display: block;
+}
+
+.operator-name {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  color: #0A0A0A;
+  white-space: nowrap;
+}
+
+.operator-card.selected .operator-name {
+  color: #185DF1;
 }
 
 /* ============================================================
@@ -1232,12 +1275,151 @@ button, input, select, textarea {
   -ms-overflow-style: none;
 }
 
-/* Responsive */
+/* ============================================================
+   PRÉSENTATION DE MARQUE SUR L'ÉCRAN D'AUTHENTIFICATION
+   ============================================================ */
+.auth-brand-presentation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--alice-blue-border);
+}
+
+@media (min-width: 961px) {
+  .auth-brand-presentation {
+    display: none; /* Le panneau gauche de bureau affiche déjà la marque complète */
+  }
+}
+
+.auth-brand-header-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.auth-brand-inline-logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(24, 93, 241, 0.25));
+}
+
+.auth-brand-inline-info {
+  text-align: left;
+}
+
+.auth-brand-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--prussian-blue);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.auth-brand-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--salesport-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.auth-brand-description {
+  font-size: 13.5px;
+  color: #4A4D54;
+  line-height: 1.5;
+  margin-bottom: 14px;
+  max-width: 360px;
+}
+
+.auth-brand-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auth-brand-pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--salesport-blue);
+  background: var(--alice-blue);
+  border: 1px solid var(--alice-blue-border);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+/* ============================================================
+   RESPONSIVE DESIGN (MOBILE & TABLETTE < 960px)
+   ============================================================ */
+.mobile-sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #EEEBDA;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.mobile-sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-menu-trigger-btn {
+  display: none;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.mobile-menu-trigger-btn:hover {
+  background: var(--bg-surface-subtle);
+  border-color: var(--ink-primary);
+}
+
+.mobile-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 17, 48, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.mobile-bottom-nav {
+  display: none;
+}
+
 @media (max-width: 960px) {
+  /* Authentification */
+  .auth-page-wrapper {
+    padding: 0;
+  }
   .auth-card-container {
     grid-template-columns: 1fr;
     height: auto;
     min-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
   }
   .auth-left-panel {
     display: none;
@@ -1246,6 +1428,179 @@ button, input, select, textarea {
     padding: 32px 20px;
     height: auto;
     min-height: 100vh;
+  }
+
+  /* App Shell & Sidebar Drawer */
+  .app-shell {
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 290px;
+    max-width: 85vw;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: none;
+  }
+
+  .app-sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.55);
+  }
+
+  .mobile-sidebar-close-btn {
+    display: flex;
+  }
+
+  .sidebar-brand-clean {
+    justify-content: space-between;
+    padding: 18px 20px;
+  }
+
+  /* Header mobile */
+  .mobile-menu-trigger-btn {
+    display: flex;
+  }
+
+  .viewport-header {
+    padding: 14px 18px;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .viewport-title-area {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .viewport-page-title {
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .viewport-subtitle {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .security-live-badge {
+    display: none; /* Gain de place dans l'en-tête mobile */
+  }
+
+  /* Contenu défilant & Marges */
+  .app-main-viewport {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .viewport-content-container {
+    padding: 16px 14px 90px; /* 90px pour laisser la place à la barre de navigation du bas */
+  }
+
+  /* Grilles responsives */
+  .hero-two-columns {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .balance-hero-card {
+    padding: 22px 18px;
+  }
+
+  .balance-main-val {
+    font-size: 30px;
+    letter-spacing: -1px;
+    margin-bottom: 18px;
+  }
+
+  .balance-actions-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .balance-actions-row button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bottom-three-columns {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .operators-selection-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+
+  /* Tableaux défilants horizontalement */
+  .table-responsive-wrapper,
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Barre de navigation inférieure Mobile (1-thumb UX) */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: #FFFFFF;
+    border-top: 1px solid var(--border-light);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    z-index: 900;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    color: #6E7381;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 12px;
+    transition: all 0.15s;
+    flex: 1;
+  }
+
+  .mobile-nav-item.active {
+    color: var(--salesport-blue);
+    font-weight: 700;
+  }
+
+  .mobile-nav-item.active svg {
+    stroke: var(--salesport-blue);
+  }
+
+  .mobile-nav-item:active {
+    transform: scale(0.94);
   }
 }
 

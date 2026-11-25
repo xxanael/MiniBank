@@ -22,8 +22,8 @@ import {
   CreditCard,
   Building,
   Activity,
+  Menu,
 } from "./icons";
-import { OrangeMoneyLogo, MtnMoMoLogo, WaveLogo, MoovMoneyLogo } from "./operatorIcons";
 import type {
   Compte,
   Transaction,
@@ -78,6 +78,7 @@ export default function App() {
     | "security"
     | "admin";
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Auth Form State
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -809,6 +810,25 @@ export default function App() {
           {/* Panneau Droit : Formulaire épuré blanc & SalesPort Blue */}
           <div className="auth-right-panel">
             <div style={{ maxWidth: 420, width: "100%", margin: "0 auto" }}>
+              {/* En-tête de Marque & Informations sur l'Application */}
+              <div className="auth-brand-presentation">
+                <div className="auth-brand-header-inline">
+                  <img src="/img/logo.png" alt="MiniBank" className="auth-brand-inline-logo" />
+                  <div className="auth-brand-inline-info">
+                    <h1 className="auth-brand-title">MiniBank</h1>
+                    <span className="auth-brand-badge">Banque Numérique</span>
+                  </div>
+                </div>
+                <p className="auth-brand-description">
+                  La néobanque nouvelle génération : gérez vos comptes en temps réel, réalisez vos virements instantanés et rechargez par Mobile Money en toute sécurité.
+                </p>
+                <div className="auth-brand-pills-row">
+                  <span className="auth-brand-pill">⚡ 100% Instantané</span>
+                  <span className="auth-brand-pill">🔒 ACID & Zéro IDOR</span>
+                  <span className="auth-brand-pill">📱 Mobile Money</span>
+                </div>
+              </div>
+
               {/* Toggle Connexion / Inscription */}
               <div style={{ display: "flex", background: "var(--alice-blue)", padding: 6, borderRadius: 9999, marginBottom: 28, border: "1px solid var(--alice-blue-border)" }}>
                 <button
@@ -1017,14 +1037,30 @@ export default function App() {
         </div>
       )}
 
+      {/* Backdrop sombre sur mobile quand le menu est ouvert */}
+      {mobileMenuOpen && (
+        <div
+          className="mobile-sidebar-backdrop"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* ============================================================
           SIDEBAR GAUCHE (MENU DE CÔTÉ ÉLÉGANT)
           Inspiré directement du design officiel MiniBank
           ============================================================ */}
-      <aside className="app-sidebar">
-        {/* Logo Unique Épuré & Simple */}
+      <aside className={`app-sidebar ${mobileMenuOpen ? "mobile-open" : ""}`}>
+        {/* Logo Unique Épuré & Simple avec bouton fermer pour mobile */}
         <div className="sidebar-brand-clean">
           <img src="/img/logo.png" alt="MiniBank" className="sidebar-clean-logo" />
+          <button
+            type="button"
+            className="mobile-sidebar-close-btn"
+            onClick={() => setMobileMenuOpen(false)}
+            title="Fermer le menu"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Navigation Categories : Restriction stricte des rôles */}
@@ -1036,7 +1072,7 @@ export default function App() {
               <button
                 type="button"
                 className={`sidebar-link ${activeTab === "overview" ? "active" : ""}`}
-                onClick={() => setActiveTab("overview")}
+                onClick={() => { setActiveTab("overview"); setMobileMenuOpen(false); }}
               >
                 <span className="link-icon"><Building size={18} /></span>
                 <span className="link-text">Tableau de bord</span>
@@ -1044,7 +1080,7 @@ export default function App() {
               <button
                 type="button"
                 className={`sidebar-link ${activeTab === "admin" ? "active" : ""}`}
-                onClick={() => { setActiveTab("admin"); loadAdminData(); }}
+                onClick={() => { setActiveTab("admin"); setMobileMenuOpen(false); loadAdminData(); }}
               >
                 <span className="link-icon"><Shield size={18} /></span>
                 <span className="link-text">Supervision & Audit</span>
@@ -1057,7 +1093,7 @@ export default function App() {
               <button
                 type="button"
                 className={`sidebar-link ${activeTab === "overview" ? "active" : ""}`}
-                onClick={() => setActiveTab("overview")}
+                onClick={() => { setActiveTab("overview"); setMobileMenuOpen(false); }}
               >
                 <span className="link-icon"><Building size={18} /></span>
                 <span className="link-text">Tableau de bord</span>
@@ -1065,7 +1101,7 @@ export default function App() {
               <button
                 type="button"
                 className={`sidebar-link ${activeTab === "accounts" ? "active" : ""}`}
-                onClick={() => setActiveTab("accounts")}
+                onClick={() => { setActiveTab("accounts"); setMobileMenuOpen(false); }}
               >
                 <span className="link-icon"><CreditCard size={18} /></span>
                 <span className="link-text">Mes Comptes & Cartes</span>
@@ -1075,7 +1111,7 @@ export default function App() {
               <button
                 type="button"
                 className={`sidebar-link ${activeTab === "transfers" ? "active" : ""}`}
-                onClick={() => setActiveTab("transfers")}
+                onClick={() => { setActiveTab("transfers"); setMobileMenuOpen(false); }}
               >
                 <span className="link-icon"><Send size={18} /></span>
                 <span className="link-text">Virements & Bénéficiaires</span>
@@ -1083,7 +1119,7 @@ export default function App() {
               <button
                 type="button"
                 className={`sidebar-link ${activeTab === "mobile_money" ? "active" : ""}`}
-                onClick={() => setActiveTab("mobile_money")}
+                onClick={() => { setActiveTab("mobile_money"); setMobileMenuOpen(false); }}
               >
                 <span className="link-icon"><Smartphone size={18} /></span>
                 <span className="link-text">Mobile Money</span>
@@ -1093,7 +1129,7 @@ export default function App() {
               <button
                 type="button"
                 className={`sidebar-link ${activeTab === "history" ? "active" : ""}`}
-                onClick={() => { setActiveTab("history"); loadTransactions(); }}
+                onClick={() => { setActiveTab("history"); setMobileMenuOpen(false); loadTransactions(); }}
               >
                 <span className="link-icon"><Activity size={18} /></span>
                 <span className="link-text">Historique & Reçus</span>
@@ -1101,7 +1137,7 @@ export default function App() {
               <button
                 type="button"
                 className={`sidebar-link ${activeTab === "security" ? "active" : ""}`}
-                onClick={() => setActiveTab("security")}
+                onClick={() => { setActiveTab("security"); setMobileMenuOpen(false); }}
               >
                 <span className="link-icon"><Lock size={18} /></span>
                 <span className="link-text">Sécurité & Paramètres</span>
@@ -1138,6 +1174,15 @@ export default function App() {
       <main className="app-main-viewport">
         {/* Top Header Bar */}
         <header className="viewport-header">
+          <button
+            type="button"
+            className="mobile-menu-trigger-btn"
+            onClick={() => setMobileMenuOpen(true)}
+            title="Ouvrir le menu"
+          >
+            <Menu size={22} />
+          </button>
+
           <div className="viewport-title-area">
             <h1 className="viewport-page-title">
               {activeTab === "overview" && "Tableau de bord"}
@@ -1755,19 +1800,20 @@ export default function App() {
                   <label className="field-label">Sélectionner l'opérateur partenaire</label>
                   <div className="operators-selection-grid">
                     {[
-                      { name: "Orange Money", renderLogo: () => <OrangeMoneyLogo size={44} /> },
-                      { name: "MTN MoMo", renderLogo: () => <MtnMoMoLogo size={44} /> },
-                      { name: "Wave", renderLogo: () => <WaveLogo size={44} /> },
-                      { name: "Moov Money", renderLogo: () => <MoovMoneyLogo size={44} /> },
+                      { name: "Orange Money", logo: "/img/operators/orange_money.png" },
+                      { name: "MTN MoMo", logo: "/img/operators/mtn_momo.png" },
+                      { name: "Wave", logo: "/img/operators/wave.png" },
+                      { name: "Moov Money", logo: "/img/operators/moov_money.png" },
                     ].map((op) => (
                       <div
                         key={op.name}
                         className={`operator-card ${mmOp === op.name ? "selected" : ""}`}
                         onClick={() => setMmOp(op.name)}
-                        style={{ cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "14px 10px" }}
                       >
-                        {op.renderLogo()}
-                        <span style={{ fontSize: 13, fontWeight: 700, textAlign: "center", color: "#0A0A0A" }}>{op.name}</span>
+                        <div className="operator-icon-wrapper">
+                          <img src={op.logo} alt={op.name} className="operator-icon-img" />
+                        </div>
+                        <span className="operator-name">{op.name}</span>
                       </div>
                     ))}
                   </div>
@@ -2226,6 +2272,81 @@ export default function App() {
         )}
         </div>
       </main>
+
+      {/* Navigation Mobile Inférieure (1-Thumb UX) */}
+      <nav className="mobile-bottom-nav">
+        {user.isAdmin ? (
+          <>
+            <button
+              type="button"
+              className={`mobile-nav-item ${activeTab === "overview" ? "active" : ""}`}
+              onClick={() => setActiveTab("overview")}
+            >
+              <Building size={20} />
+              <span>Accueil</span>
+            </button>
+            <button
+              type="button"
+              className={`mobile-nav-item ${activeTab === "admin" ? "active" : ""}`}
+              onClick={() => { setActiveTab("admin"); loadAdminData(); }}
+            >
+              <Shield size={20} />
+              <span>Supervision</span>
+            </button>
+            <button
+              type="button"
+              className="mobile-nav-item"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu size={20} />
+              <span>Menu</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              className={`mobile-nav-item ${activeTab === "overview" ? "active" : ""}`}
+              onClick={() => setActiveTab("overview")}
+            >
+              <Building size={20} />
+              <span>Accueil</span>
+            </button>
+            <button
+              type="button"
+              className={`mobile-nav-item ${activeTab === "accounts" ? "active" : ""}`}
+              onClick={() => setActiveTab("accounts")}
+            >
+              <CreditCard size={20} />
+              <span>Comptes</span>
+            </button>
+            <button
+              type="button"
+              className={`mobile-nav-item ${activeTab === "transfers" ? "active" : ""}`}
+              onClick={() => setActiveTab("transfers")}
+            >
+              <Send size={20} />
+              <span>Virements</span>
+            </button>
+            <button
+              type="button"
+              className={`mobile-nav-item ${activeTab === "mobile_money" ? "active" : ""}`}
+              onClick={() => setActiveTab("mobile_money")}
+            >
+              <Smartphone size={20} />
+              <span>Mobile</span>
+            </button>
+            <button
+              type="button"
+              className="mobile-nav-item"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu size={20} />
+              <span>Plus</span>
+            </button>
+          </>
+        )}
+      </nav>
 
       {/* ============================================================
           MODAL 1 : APERÇU DE VIREMENT (2-STEP VERIFICATION)
